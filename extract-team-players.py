@@ -4,8 +4,22 @@ Extract All players' information from a team pages for espncricinfo
 e.g. "https://www.espncricinfo.com/cricketers/team/nepal-33"
 '''
 
-from bs4 import BeautifulSoup
+
+
 import json
+from bs4 import BeautifulSoup
+from utils import fetch_page
+
+url = "https://www.espncricinfo.com/cricketers/team/nepal-33"
+html = fetch_page(url)
+print("\n--- Page HTML (first 500 chars) ---\n")
+print(html[:500])
+try:
+    with open("output.html", "w", encoding="utf-8") as f:
+        f.write(html)
+    print("HTML content successfully written to output.html")
+except Exception as e:
+    print(f"Error writing to file: {e}")
 
 with open("output.html", "r", encoding="utf-8") as f:
     html = f.read()
