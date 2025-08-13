@@ -1,10 +1,8 @@
-import json
 from bs4 import BeautifulSoup
 from src.utils import fetch_page
 import re
 
-
-async def extract_player_data(url: str):
+async def extract_player_data(url: str, single_player: bool ):
 
     if "https" not in url:
         url = "https://stats.espncricinfo.com/ci/engine/player/" + url + ".html?class=11;template=results;type=allround"
@@ -41,10 +39,13 @@ async def extract_player_data(url: str):
     player_id_match = re.search(r'/player/(\d+)\.html', url)
     player_id = player_id_match.group(1) if player_id_match else None
 
-    results = [{
-        "player_name": player_name,
-        "player_id": player_id
-        }]
+    if single_player:
+        results = [{
+            "player_name": player_name,
+            "player_id": player_id
+            }]
+    else:
+        results = []
 
     tables = soup.find_all("table", class_="engineTable")
     
