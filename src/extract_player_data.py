@@ -6,6 +6,9 @@ import re
 
 async def extract_player_data(url: str):
 
+    if "https" not in url:
+        url = "https://stats.espncricinfo.com/ci/engine/player/" + url + ".html?class=3;template=results;type=allround"
+
     #class references the class in the URL .html?class=3;template=results;type=allround
     all_col_names = ["Heading" ,"Span", "Mat", "Runs", "HS", "Bat Av", "100", "Wkts", "BBI", "Bowl Av", "5", "Ct", "St", "Ave Diff"] #class=11
     T20_col_names = ["Heading" ,"Span", "Mat", "Runs", "HS", "Bat Av", "100", "Wkts", "BBI", "Bowl Av", "5", "Ct", "St", "Ave Diff"] #class=2 | T20 is same as "all" but god knows if that will ever change
