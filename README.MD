@@ -5,8 +5,8 @@ This tool is built specifically for 977Sports https://www.977sports.com/
 
 Testing and Usage has only been evaluated on cricket teams so far.
 
-> **⚠️ WARNING:**  
-> <span style="color:red">USING THE `--team_full` FLAG MAY LEAD TO AN IP BAN FROM ESPN.</span>
+**⚠️ WARNING:**  
+<span style="color:red">USING THE `--team_full` FLAG MAY LEAD TO AN IP BAN FROM ESPN.</span>
 
 ## Usage
 
