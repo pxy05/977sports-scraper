@@ -1,6 +1,7 @@
 import argparse
 import asyncio
 from src.end_point_functions import *
+from src.extract_team_data import extract_team_data
 help_desc = (
 '''CLI Scraper tool for www.espncricinfo.com by pxy05.
 Visit https://github.com/pxy05/sport-scraper for more information.
@@ -19,6 +20,12 @@ general_help_message = (
     "This is a CLI tool for scraping player data from ESPN Cricinfo.\n\n"
     "To use, insert the link to the team or player page and it will create a JSON file with info (name, image, URL to profile)."
 )
+
+def validate_url(URL: str) -> bool:
+    if not URL.startswith("https://www.espncricinfo.com"):
+        print("\033[91mError: Invalid URL. It should start with 'https://www.espncricinfo.com/'.\033[0m")
+        return False
+    return True
 
 async def main():
     only_by_itself = ["team", "player", "team_full", "page"]
@@ -50,16 +57,18 @@ async def main():
         print("\033[91mError: You must specify either --team, --player, --team_full, or --page before specifying an output file.\033[0m")
         print("--help for more advice.")
         return
+    
+    if not validate_url(getattr(args, selected_option)):
+        return
 
     if selected_option == "team":
-        await extract_team_players(args.team, args.output)
+        await extract_team_data(args.team, args.output)
     elif selected_option == "player":
-        await extract_player_data(f"{args.player}/bowling-batting-stats", True, args.output)
+        await extract_player_data(args.player, True, args.output)
     elif selected_option == "team_full":
-        await extract_team_full_data(args.team_full, args.output)
+        await extract_team_data(args.team_full, args.output, True)
     elif selected_option == "page":
         await extract_page(args.page, args.output)
-
 
     print(f"Scraping team: {args.team}")
     print(f"Output file: {args.output}")
