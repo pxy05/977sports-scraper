@@ -62,7 +62,11 @@ async def extract_player_data(url: str):
             row = {}
             tds = tr.find_all("td")
             for i, td in enumerate(tds):
-                row[col_names[i]] = td.get_text(strip=True)
+                col_val = td.get_text(strip=True)
+                if col_val == "":
+                    continue
+                else:
+                    row[col_names[i]] = col_val
             if row and len(row) > 7:
                 results.append(row)
     print(f"Scraped {len(rows)} rows of data ({len(rows) * len(col_names)} pieces of data in total) for player {player_name} with ID {player_id}")
