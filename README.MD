@@ -5,6 +5,9 @@ This tool is built specifically for 977Sports https://www.977sports.com/
 
 Testing and Usage has only been evaluated on cricket teams so far.
 
+> ⚠️ **WARNING:**  
+> **Using the `--team_full` flag may lead to an IP ban from ESPNcricinfo. Proceed with caution.**
+
 ## Usage
 
 All valid URLs must begin with "https://www.espncricinfo.com".
