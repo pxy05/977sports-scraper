@@ -18,12 +18,12 @@ Or scraping team full player data (all players in a team with detailed stats)
 It is necessary to run this tool with a head to bypass bot detection.'''
 )
 
-def validate_url(URL: str, print: bool) -> bool:
-    if not URL.startswith("https://www.espncricinfo.com"):
-        if print:
-            print("\033[91mError: Invalid URL. It should start with 'https://www.espncricinfo.com/'.\033[0m")
-        return False
-    return True
+# def validate_url(URL: str, option: bool) -> bool:
+#     if not URL.startswith("https://www.espncricinfo.com"):
+#         if ["team_full"].count(option) > 0:
+#             print("\033[91mError: Invalid URL. It should start with 'https://www.espncricinfo.com/'.\033[0m")
+#         return False
+#     return True
 
 async def main():
     only_by_itself = ["team", "player", "team_full", "page"]
@@ -65,12 +65,9 @@ async def main():
         # await player_data(args.player, True)
         await player_data(args.player, True)
     elif selected_option == "team_full":
-        await team_full_data(args.team_full, args.output, True)
+        await team_full_data(args.team_full, args.output)
     elif selected_option == "page":
         await page(args.page, args.output)
-
-    print(f"Scraping team: {args.team}")
-    print(f"Output file: {args.output}")
 
 if __name__ == "__main__":
     asyncio.run(main())

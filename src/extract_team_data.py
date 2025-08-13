@@ -1,7 +1,8 @@
+import sys
 import time
 from playwright.async_api import async_playwright
 import re
-from src.utils import write_to_file\
+from src.progress_bar import print_progress_bar
 
 def get_team_id(URL: str) -> str:
     return URL.rstrip('/').split('/')[-1].split('?')[0].split('#')[0]
@@ -35,24 +36,26 @@ async def extract_team_data(URL: str, output: str = "output") -> None:
             
             nonlocal total_players
             if XHR_PATTERN.search(response.url) and response.status == 200:
-                print(f"Response URL: {XHR_PATTERN.search(response.url)}")
                 try:
                     data = await response.json()
 
                     if total_players is None:
                         total_players = data.get("total", 0)
-                        print(f"Total players to collect: {total_players}")
 
                     players = data.get("results", [])
 
                     # TODO
                     # Implement more optimal duplicate checking algorithm
-                    for p_data in players:
-                        if p_data not in all_players:
-                            all_players.append(p_data)
+                    for player_data in players:
+                        if player_data not in all_players:
+                            all_players.append(player_data)
 
-                    print(f"Collected {len(all_players)}/{total_players} players so far")
+                    
+                    progress = len(all_players) / total_players if total_players else 0
+                    # sys.stdout.write(f"\rProgress: {progress_bar_map[int(percentage_complete * 10)]}")
 
+
+                    print_progress_bar(progress)
                 except Exception as e:
                     print(f"Failed to parse JSON: {e}")
 
@@ -95,5 +98,7 @@ async def extract_team_data(URL: str, output: str = "output") -> None:
             time.sleep(0.5)
 
         await browser.close()
-
+        sys.stdout.write("\n")
         return all_players
+    
+    

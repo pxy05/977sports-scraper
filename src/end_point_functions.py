@@ -1,7 +1,7 @@
 from src.utils import fetch_page, write_to_file
 from src.extract_team_data import extract_team_data, get_team_id, get_team_country, get_team_uuid
 from src.extract_player_data import extract_player_data
-import json
+from src.progress_bar import print_progress_bar
 
 async def team_data(URL: str, output: str = "output") -> None:
 
@@ -43,21 +43,17 @@ async def player_data(URL: str, individual_player: bool = False, output: str = "
 
 
 async def team_full_data(URL: str, output: str = "output") -> None:
+    print(f"Scraping players from: {URL.split('/')[-1]}")
     team_json = await extract_team_data(URL, output)
-    temp = []
 
     index = 0
-    for player in team_json:
-        if index < 5:
-            temp.append(player)
-        index += 1
-
-    team_json = temp
 
     for player in team_json:
+        index+=1
         player_id = str(player.get("objectId"))
-        player_data = await extract_player_data(player_id, True)
+        player_data = await extract_player_data(player_id, False)
         player["full_data"] = player_data
+        print_progress_bar(index / len(team_json), True)
     write_to_file(team_json, "json", output)
 
 async def page(url: str, output: str = "output") -> None:
