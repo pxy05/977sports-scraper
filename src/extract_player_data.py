@@ -7,7 +7,9 @@ import re
 async def extract_player_data(url: str):
 
     if "https" not in url:
-        url = "https://stats.espncricinfo.com/ci/engine/player/" + url + ".html?class=3;template=results;type=allround"
+        url = "https://stats.espncricinfo.com/ci/engine/player/" + url + ".html?class=11;template=results;type=allround"
+
+    print(f"Scraping player data from: {url}")
 
     #class references the class in the URL .html?class=3;template=results;type=allround
     all_col_names = ["Heading" ,"Span", "Mat", "Runs", "HS", "Bat Av", "100", "Wkts", "BBI", "Bowl Av", "5", "Ct", "St", "Ave Diff"] #class=11
@@ -29,7 +31,6 @@ async def extract_player_data(url: str):
     html = await fetch_page(url)
     soup = BeautifulSoup(html, "html.parser")
 
-    # Find the anchor tag containing the player name
     player_name_element = soup.find("a", href=re.compile(r"/ci/engine/player/\d+\.html"))
     player_name = "player_data"
     if player_name_element and player_name_element.text:
@@ -37,7 +38,6 @@ async def extract_player_data(url: str):
         parts = parts.split(" ")
         player_name = parts[1] + " " + parts[2]
 
-    # Extract player_id from the URL
     player_id_match = re.search(r'/player/(\d+)\.html', url)
     player_id = player_id_match.group(1) if player_id_match else None
 
@@ -62,17 +62,9 @@ async def extract_player_data(url: str):
             row = {}
             tds = tr.find_all("td")
             for i, td in enumerate(tds):
-                # Use header if available, else index
-                header = None
-                # Try to get header from previous sibling row with class 'head'
-                head_row = tr.find_previous_sibling("tr", class_="head")
-                # if head_row:
-                #     headers = [th.get_text(strip=True) for th in head_row.find_all("th")]
-                #     if i < len(headers):
-                #         header = headers[i]
-                # key = header if header else f"col_{i}"
                 row[col_names[i]] = td.get_text(strip=True)
-            if row:
+            if row and len(row) > 7:
                 results.append(row)
+    print(f"Scraped {len(rows)} rows of data ({len(rows) * len(col_names)} pieces of data in total) for player {player_name} with ID {player_id}")
     return results
 
