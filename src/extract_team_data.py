@@ -19,20 +19,7 @@ def get_team_uuid(URL: str) -> str:
     # Just more optimal reusing get_team_id
     return URL.split("-")[-1]
 
-async def extract_team_data(URL: str, output: str = "output", full:bool = False) -> None:
-
-    if full:
-
-        team_id = get_team_id(URL)
-        team_country = get_team_country(URL)
-
-
-        if output == "output":
-            output = team_id
-
-        print(f"Output will be saved to: {output}")
-        print(f"Scraping team:{team_id}")
-
+async def extract_team_data(URL: str, output: str = "output") -> None:
 
     XHR_PATTERN = re.compile(f"filterFormatLevel=ALL")
 
@@ -72,8 +59,11 @@ async def extract_team_data(URL: str, output: str = "output", full:bool = False)
         page.on("response", handle_response)
         await page.goto(URL)
 
-        # Exit Disney Cookie Modal
+        #To bypass consent modals.
+        #If one appears that hasnt been accounted for
+        #please start an issue on: https://github.com/pxy05/sport-scraper/issues
 
+        # Exit Disney Cookie Modal
         try:
             await page.wait_for_selector('button:has-text("Accept All")', timeout=2000)
             await page.click('button:has-text("Accept All")')
@@ -104,19 +94,6 @@ async def extract_team_data(URL: str, output: str = "output", full:bool = False)
             await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
             time.sleep(0.5)
 
-            
-        if full:
-            team_id = get_team_id(URL)
-            team_country = get_team_country(URL)
+        await browser.close()
 
-
-            if output == "output":
-                output = team_id
-
-            print(f"Output will be saved to: {output}")
-            print(f"Scraping team:{team_id}")
-
-            print(f"Task Completed: Collected all {len(all_players)} players from {team_country}.")
-            await browser.close()
-
-            write_to_file(all_players, "json", output)
+        return all_players

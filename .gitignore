@@ -1,5 +1,7 @@
-pycache/
-pycache/*
+*/pycache/
+*/pycache/*
+*.pyc
+*/__pycache__/
 
 *.json
 *.html

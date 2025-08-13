@@ -3,6 +3,13 @@ import json
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
+def process_player(player: dict) -> dict:
+            slug = player.get("slug")
+            id = player.get("objectId")
+            player_url = f"https://www.espncricinfo.com/player/{slug}-{id}"
+            data_url = f"https://stats.espncricinfo.com/ci/engine/player/{id}.html?class=11;template=results;type=allround"
+
+
 
 def write_to_file(data, filetype: str, filename: str = "output") -> bool:
 
@@ -32,18 +39,17 @@ async def fetch_page(url: str) -> str:
         page = await context.new_page()
         await page.goto(url)
 
-        # try:
-        #     try:
-        #         await page.wait_for_selector('button:has-text("Accept All")', timeout=5000)
-        #         await page.click('button:has-text("Accept All")')
-        #     except Exception:
-        #         try:
-        #             await page.wait_for_selector('button:has-text("Accept")', timeout=5000)
-        #             await page.click('button:has-text("Accept")')
-        #         except Exception:
-        #             pass
-        # except Exception:
-        #     pass
+        #To bypass consent modals.
+        #If one appears that hasnt been accounted for
+        #please start an issue on: https://github.com/pxy05/sport-scraper/issues
+
+        try:
+            await page.wait_for_selector('button:has-text("Consent")', timeout=2000)
+            await page.click('button:has-text("Consent")')
+        except Exception:
+            pass
+
+
 
         scrolls = 3
         for _ in range(scrolls):
