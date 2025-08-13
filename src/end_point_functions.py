@@ -1,7 +1,8 @@
 from src.utils import fetch_page, write_to_file
 from bs4 import BeautifulSoup
+from src.extract_team_data import extract_team_data
 
-async def extract_team_players(url: str, output: str = "output") -> list:
+async def extract_team_players(url: str, output: str = "output") -> list: #soon to be depricated???
 
     html = await fetch_page(url)
     soup = BeautifulSoup(html, "html.parser")
@@ -36,7 +37,9 @@ async def extract_player_data(player: str, individual_player: bool = False, outp
 
 
 
-async def extract_team_full_data():
+async def extract_team_full_data(URL: str, output: str = "output") -> None:
+
+
     return
 
 async def extract_page(url: str, output: str = "output") -> None:

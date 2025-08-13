@@ -2,7 +2,6 @@ import time
 import json
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-import asyncio
 
 
 def write_to_file(data, filetype: str, filename: str = "output") -> bool:
@@ -33,16 +32,23 @@ async def fetch_page(url: str) -> str:
         page = await context.new_page()
         await page.goto(url)
 
-        try:
-            await page.wait_for_selector('button:has-text("Accept All")', timeout=5000)
-            await page.click('button:has-text("Accept All")')
-        except Exception:
-            pass
+        # try:
+        #     try:
+        #         await page.wait_for_selector('button:has-text("Accept All")', timeout=5000)
+        #         await page.click('button:has-text("Accept All")')
+        #     except Exception:
+        #         try:
+        #             await page.wait_for_selector('button:has-text("Accept")', timeout=5000)
+        #             await page.click('button:has-text("Accept")')
+        #         except Exception:
+        #             pass
+        # except Exception:
+        #     pass
 
-        scrolls = 2
+        scrolls = 3
         for _ in range(scrolls):
             await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            time.sleep(3)
+            time.sleep(0.5)
 
         html_content = await page.content()
 
