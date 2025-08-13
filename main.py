@@ -1,7 +1,6 @@
 import argparse
 import asyncio
 from src.end_point_functions import *
-from src.extract_player_data import extract_player_data
 
 help_desc = (
 '''CLI Scraper tool for www.espncricinfo.com by pxy05.
@@ -61,14 +60,14 @@ async def main():
     #     return
 
     if selected_option == "team":
-        await extract_team_data(args.team, args.output)
+        await team_data(args.team, args.output)
     elif selected_option == "player":
         # await player_data(args.player, True)
         await player_data(args.player, True)
     elif selected_option == "team_full":
-        await extract_team_data(args.team_full, args.output, True)
+        await team_full_data(args.team_full, args.output, True)
     elif selected_option == "page":
-        await extract_page(args.page, args.output)
+        await page(args.page, args.output)
 
     print(f"Scraping team: {args.team}")
     print(f"Output file: {args.output}")

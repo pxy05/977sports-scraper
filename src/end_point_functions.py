@@ -3,7 +3,7 @@ from src.extract_team_data import extract_team_data, get_team_id, get_team_count
 from src.extract_player_data import extract_player_data
 import json
 
-async def extract_team_players(URL: str, output: str = "output", full:bool = False) -> None:
+async def team_data(URL: str, output: str = "output", full:bool = False) -> None:
 
     team_id = get_team_id(URL)
     team_country = get_team_country(URL)
@@ -44,12 +44,12 @@ async def player_data(URL: str, individual_player: bool = False, output: str = "
         write_to_file(player_data, "json", output)
 
 
-async def extract_team_full_data(URL: str, output: str = "output") -> None:
+async def team_full_data(URL: str, output: str = "output") -> None:
     
 
     return
 
-async def extract_page(url: str, output: str = "output") -> None:
+async def page(url: str, output: str = "output") -> None:
     page_html = await fetch_page(url)
     write_to_file(page_html, "html", output)
 
