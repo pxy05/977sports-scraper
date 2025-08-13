@@ -1,10 +1,12 @@
 import argparse
 import asyncio
 from src.end_point_functions import *
-from src.extract_team_data import extract_team_data
+
 help_desc = (
 '''CLI Scraper tool for www.espncricinfo.com by pxy05.
 Visit https://github.com/pxy05/sport-scraper for more information.
+
+This tool is still in Beta if there are any issues please start on at: https://github.com/pxy05/sport-scraper/issues
 
 This is a CLI tool for:
 Scraping basic player data (name, image, URL) from ESPN Cricinfo via their teams pages https://www.espncricinfo.com/cricketers/team/...
@@ -16,14 +18,10 @@ Or scraping team full player data (all players in a team with detailed stats)
 It is necessary to run this tool with a head to bypass bot detection.'''
 )
 
-general_help_message = (
-    "This is a CLI tool for scraping player data from ESPN Cricinfo.\n\n"
-    "To use, insert the link to the team or player page and it will create a JSON file with info (name, image, URL to profile)."
-)
-
-def validate_url(URL: str) -> bool:
+def validate_url(URL: str, print: bool) -> bool:
     if not URL.startswith("https://www.espncricinfo.com"):
-        print("\033[91mError: Invalid URL. It should start with 'https://www.espncricinfo.com/'.\033[0m")
+        if print:
+            print("\033[91mError: Invalid URL. It should start with 'https://www.espncricinfo.com/'.\033[0m")
         return False
     return True
 
@@ -58,17 +56,18 @@ async def main():
         print("--help for more advice.")
         return
     
-    if not validate_url(getattr(args, selected_option)):
-        return
+    # if  (not args.page) and (not validate_url(getattr(args, selected_option))):
+    #     return
 
     if selected_option == "team":
-        await extract_team_data(args.team, args.output)
+        await team_data(args.team, args.output)
     elif selected_option == "player":
-        await extract_player_data(args.player, True, args.output)
+        # await player_data(args.player, True)
+        await player_data(args.player, True)
     elif selected_option == "team_full":
-        await extract_team_data(args.team_full, args.output, True)
+        await team_full_data(args.team_full, args.output, True)
     elif selected_option == "page":
-        await extract_page(args.page, args.output)
+        await page(args.page, args.output)
 
     print(f"Scraping team: {args.team}")
     print(f"Output file: {args.output}")

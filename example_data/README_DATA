@@ -1,0 +1,8 @@
+Legend:
+name_of_file: command passed
+
+---
+
+get_player_data_from_team_nepal.json: python .\main.py --team https://www.espncricinfo.com/cricketers/team/nepal-33 --output get_players_from_team
+
+player_from_engine_page.html: python .\main.py --page "https://stats.espncricinfo.com/ci/engine/player/701217.html?class=11;template=results;type=allround" --output player_from_engine_page
