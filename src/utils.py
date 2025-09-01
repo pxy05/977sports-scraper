@@ -1,27 +1,18 @@
 import time
 import json
-from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
+import re
 
 def verify_link(url: str, type: str) -> bool:
     #dissected_url has array structure like ['https:', '', 'www.espncricinfo.com', 'team', 'united-arab-emirates-27']
 
-    team_prefixes = [
-        "https://www.espncricinfo.com/team/",
-        "https://www.espncricinfo.com/cricketers/team/"
-    ]
+    VALID_TEAM_URL_REGEX = re.compile(
+    r"^https://www\.espncricinfo\.com/(?:cricketers/)?team/[a-zA-Z0-9-]+$"
+    )
 
     match type:
         case "team":
-            url_split = url.split("/")
-            if len(url_split) > 6 or len(url_split) < 5:
-                return False
-            return any(
-                url.startswith(prefix) and 
-                url[len(prefix):].strip("/") != "" and 
-                "/" not in url[len(prefix):].strip("/")
-                for prefix in team_prefixes
-            )
+            return bool(VALID_TEAM_URL_REGEX.match(url))
         case "player":
             return url.startswith("https://www.espncricinfo.com/cricketers/")
         case _:
