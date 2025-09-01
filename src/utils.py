@@ -3,6 +3,30 @@ import json
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
+def verify_link(url: str, type: str) -> bool:
+    #dissected_url has array structure like ['https:', '', 'www.espncricinfo.com', 'team', 'united-arab-emirates-27']
+
+    team_prefixes = [
+        "https://www.espncricinfo.com/team/",
+        "https://www.espncricinfo.com/cricketers/team/"
+    ]
+
+    match type:
+        case "team":
+            url_split = url.split("/")
+            if len(url_split) > 6 or len(url_split) < 5:
+                return False
+            return any(
+                url.startswith(prefix) and 
+                url[len(prefix):].strip("/") != "" and 
+                "/" not in url[len(prefix):].strip("/")
+                for prefix in team_prefixes
+            )
+        case "player":
+            return url.startswith("https://www.espncricinfo.com/cricketers/")
+        case _:
+            return False
+
 def process_player(player: dict) -> dict:
             slug = player.get("slug")
             id = player.get("objectId")
