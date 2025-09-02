@@ -84,7 +84,7 @@ async def team_full_data(URL: str, output: str = "output", existing_team_data: s
         player["full_data"] = player_data
         print_progress_bar(index / len(team_json), True)
         write_to_file(team_json, "json", output) # save the updated team JSON after each player is processed so save if anything interrupts v annoying
-        await sleep(10)
+        await sleep(5)
 
 async def page(url: str, output: str = "output") -> None:
     page_html = await fetch_page(url)
