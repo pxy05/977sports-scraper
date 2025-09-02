@@ -37,36 +37,36 @@ async def extract_player_data(url: str, single_player: bool ):
     player_id_match = re.search(r'/player/(\d+)\.html', url)
     player_id = player_id_match.group(1) if player_id_match else None
 
-    if single_player:
-        results = [{
-            "player_name": player_name,
-            "player_id": player_id
-            }]
-    else:
-        results = []
-
+    results = {
+        "player_name": player_name,
+        "player_id": player_id,
+        "stats": {}
+    }
+    
     tables = soup.find_all("table", class_="engineTable")
     
     for table in tables:
-        
         rows = table.find_all("tr", class_=["data1", "data2"])
-        if len(rows) < 7:
+        if len(rows) < 1:
             continue
 
-        if len(rows) > len(col_names):
-            for i in range(len(rows) - len(col_names)):
+        # Adjust col_names if table is wider
+        if len(rows[0].find_all("td")) > len(col_names):
+            for i in range(len(rows[0].find_all("td")) - len(col_names)):
                 col_names.append(f"extra_{i}")
 
         for tr in rows:
-            row = {}
             tds = tr.find_all("td")
+            row = {}
             for i, td in enumerate(tds):
                 col_val = td.get_text(strip=True)
-                if col_val == "":
-                    continue
-                else:
+                if col_val != "":
                     row[col_names[i]] = col_val
-            if row and len(row) > 7:
-                results.append(row)
+
+            if row and "Heading" in row:
+                heading = row.pop("Heading")
+                if heading not in results["stats"]:
+                    results["stats"][heading] = []
+                results["stats"][heading].append(row)
     return results
 

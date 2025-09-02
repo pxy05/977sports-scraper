@@ -44,7 +44,7 @@ async def player_data(URL: str, individual_player: bool = False, output: str = "
     if individual_player:
         player_data = await extract_player_data(URL, True)
         if output == "output":
-            output = player_data[0].get("player_id")
+            output = player_data.get("player_id")
         write_to_file(player_data, "json", output)
 
 
@@ -57,6 +57,7 @@ async def team_full_data(URL: str, output: str = "output", existing_team_data: s
         return
     #dissected_url has array structure like ['https:', '', 'www.espncricinfo.com', 'team', 'united-arab-emirates-27']
     print(f"Scraping players from: {dissected_url[-1]}")
+    print(f"Data will be saved into: {output}")
 
     if dissected_url[3] != "cricketers":
         URL = f"https://www.espncricinfo.com/cricketers/team/{dissected_url[-1]}"
