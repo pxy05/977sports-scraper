@@ -68,5 +68,10 @@ async def extract_player_data(url: str, single_player: bool ):
                 if heading not in results["stats"]:
                     results["stats"][heading] = []
                 results["stats"][heading].append(row)
+                
+    for key in list(results["stats"].keys()):
+        results["stats"][key] = [item for item in results["stats"][key] if len(item) >= 7]
+        if not results["stats"][key]:
+            del results["stats"][key]
     return results
 
