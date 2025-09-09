@@ -2,6 +2,7 @@ from anyio import sleep
 from src.utils import fetch_page, write_to_file, verify_link
 from src.extract_team_data import extract_team_data, get_team_id, get_team_country, get_team_uuid
 from src.extract_player_data import extract_player_data
+from src.extract_match_data import extract_match_data
 from src.progress_bar import print_progress_bar
 import json
 
@@ -91,3 +92,6 @@ async def page(url: str, output: str = "output") -> None:
     page_html = await fetch_page(url)
     write_to_file(page_html, "html", output)
 
+async def match_data(match_url: str, output: str = "output") -> None:
+    match_data = await extract_match_data(match_url)
+    write_to_file(match_data, "json", output)

@@ -26,7 +26,7 @@ It is necessary to run this tool with a head to bypass bot detection.'''
 #     return True
 
 async def main():
-    only_by_itself = ["team", "player", "team_full", "page"]
+    only_by_itself = ["team", "player", "team_full", "page", "match"]
     only_by_itself_counter = 0
     selected_option = ""
 
@@ -35,6 +35,7 @@ async def main():
     parser.add_argument('--player', type=str, help='To use, insert the link to the player page and it will create a JSON file with player info (Batting & Fielding stats, and Bowling stats).')
     parser.add_argument('--team_full', type=str, help='To use, insert the link to the team page and it will create a JSON file with full player data (all players in a team with detailed stats).')
     parser.add_argument('--page', type=str, help='To use, insert the link to any page and it will scrape the raw HTML data.')
+    parser.add_argument('--match', type=str, default='output', help='Download the JSON data for a specific match.')
     parser.add_argument('--output', type=str, default='output', help='Specify the output file path (default: ./output) The type of file depends on the scraping option used.')
 
     args = parser.parse_args()
@@ -68,6 +69,8 @@ async def main():
         await team_full_data(args.team_full, args.output)
     elif selected_option == "page":
         await page(args.page, args.output)
+    elif selected_option == "match":
+        await match_data(args.match, args.output)
 
 if __name__ == "__main__":
     asyncio.run(main())
