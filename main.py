@@ -35,7 +35,9 @@ async def main():
     parser.add_argument('--player', type=str, help='To use, insert the link to the player page and it will create a JSON file with player info (Batting & Fielding stats, and Bowling stats).')
     parser.add_argument('--team_full', type=str, help='To use, insert the link to the team page and it will create a JSON file with full player data (all players in a team with detailed stats).')
     parser.add_argument('--page', type=str, help='To use, insert the link to any page and it will scrape the raw HTML data.')
-    parser.add_argument('--match', type=str, default='output', help='Download the JSON data for a specific match.')
+    parser.add_argument('--match', type=str, help='Download the JSON data for a specific match.')
+    parser.add_argument('--analysis_type', type=str, default='comprehensive', choices=['comprehensive', 'summary', 'live', 'structured', 'timeline'], help='Type of analysis to perform on match data.')
+    parser.add_argument('--filename', type=str, help='Path to existing JSON file containing match data (alternative to --match URL).')
     parser.add_argument('--output', type=str, default='output', help='Specify the output file path (default: ./output) The type of file depends on the scraping option used.')
 
     args = parser.parse_args()
@@ -52,8 +54,13 @@ async def main():
             print("--help for more advice.")
             return
 
+    # Check if filename is provided without match
+    if args.filename and not args.match:
+        selected_option = "match"
+        only_by_itself_counter = 1
+    
     if only_by_itself_counter == 0:
-        print("\033[91mError: You must specify either --team, --player, --team_full, or --page before specifying an output file.\033[0m")
+        print("\033[91mError: You must specify either --team, --player, --team_full, --page, or --match before specifying an output file.\033[0m")
         print("--help for more advice.")
         return
     
@@ -70,7 +77,7 @@ async def main():
     elif selected_option == "page":
         await page(args.page, args.output)
     elif selected_option == "match":
-        await match_data(args.match, args.output)
+        await match_data(args.match, args.output, args.analysis_type, args.filename)
 
 if __name__ == "__main__":
     asyncio.run(main())

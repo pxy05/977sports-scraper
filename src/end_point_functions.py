@@ -5,6 +5,9 @@ from src.extract_player_data import extract_player_data
 from src.extract_match_data import extract_match_data
 from src.progress_bar import print_progress_bar
 import json
+from src.match.processor import process_cricket_data
+from src.match.analyser import CricketMatchAnalyzer, analyze_cricket_match
+from src.match.extractor import CricketDataExtractor
 
 '''
 Using sleep between each player info retrieval.
@@ -92,6 +95,227 @@ async def page(url: str, output: str = "output") -> None:
     page_html = await fetch_page(url)
     write_to_file(page_html, "html", output)
 
-async def match_data(match_url: str, output: str = "output") -> None:
-    match_data = await extract_match_data(match_url)
-    write_to_file(match_data, "json", output)
+async def match_data(match_url: str = None, output: str = "output", analysis_type: str = "comprehensive", filename: str = None) -> None:
+    """
+    Extract and analyze cricket match data from ESPN Cricinfo
+    
+    Args:
+        match_url: ESPN Cricinfo match JSON URL (optional if filename is provided)
+        output: Output filename (without extension)
+        analysis_type: Type of analysis to perform
+            - "comprehensive": Full analysis with all data extraction methods
+            - "summary": Basic match summary only
+            - "live": Current match state only
+            - "structured": Structured data extraction only
+            - "timeline": Event-by-event timeline of the match
+        filename: Path to existing JSON file containing match data (optional)
+    """
+    try:
+        # Load match data from file or URL
+        if filename:
+            print(f"Loading match data from file: {filename}")
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    match_data = json.load(f)
+                print(f"Successfully loaded match data from file")
+            except FileNotFoundError:
+                print(f"\033[91mError: File '{filename}' not found.\033[0m")
+                return
+            except json.JSONDecodeError as e:
+                print(f"\033[91mError: Invalid JSON in file '{filename}': {str(e)}\033[0m")
+                return
+            except Exception as e:
+                print(f"\033[91mError reading file '{filename}': {str(e)}\033[0m")
+                return
+        elif match_url:
+            print(f"Fetching match data from URL: {match_url}")
+            match_data = await extract_match_data(match_url)
+            if not match_data:
+                print("\033[91mError: Failed to fetch match data. Please check the URL.\033[0m")
+                return
+            print(f"Successfully fetched match data")
+        else:
+            print("\033[91mError: Either match_url or filename must be provided.\033[0m")
+            return
+        
+        # Validate that this is match data, not player data
+        if not _is_match_data(match_data):
+            print("\033[91mError: The provided data does not appear to be cricket match data.\033[0m")
+            print("Please ensure you're using a match JSON file, not player data.")
+            return
+        
+        # Initialize analyzers
+        analyzer = CricketMatchAnalyzer(match_data)
+        extractor = CricketDataExtractor(match_data)
+        
+        # Process based on analysis type
+        if analysis_type == "comprehensive":
+            print("\nPerforming comprehensive analysis...")
+            
+            # Get comprehensive analysis
+            analysis_result = analyze_cricket_match(match_data)
+            
+            # Process with the processor function
+            processed_data = process_cricket_data(match_data)
+            
+            # Convert DataFrames to dictionaries for JSON serialization
+            analysis_result_serializable = {
+                'match_summary': analysis_result['match_summary'],
+                'innings_data': analysis_result['innings_data'],
+                'batting_stats': analysis_result['batting_stats'].to_dict('records') if not analysis_result['batting_stats'].empty else [],
+                'bowling_stats': analysis_result['bowling_stats'].to_dict('records') if not analysis_result['bowling_stats'].empty else [],
+                'ball_by_ball': analysis_result['ball_by_ball'].to_dict('records') if not analysis_result['ball_by_ball'].empty else [],
+                'human_report': analysis_result['human_report']
+            }
+            
+            # Combine all results
+            comprehensive_data = {
+                "raw_data": match_data,
+                "analysis": analysis_result_serializable,
+                "processed": processed_data,
+                "extracted": {
+                    "match_info": extractor.extract_match_info(),
+                    "team_info": extractor.extract_team_info(),
+                    "innings_data": extractor.extract_innings_data(),
+                    "live_batting": extractor.extract_live_batting(),
+                    "live_bowling": extractor.extract_live_bowling(),
+                    "ball_by_ball": extractor.extract_ball_by_ball(),
+                    "partnerships": extractor.extract_partnerships()
+                }
+            }
+            
+            # Save comprehensive data
+            write_to_file(comprehensive_data, "json", f"{output}_comprehensive")
+            
+            # Print human-readable report
+            print("\n" + "="*80)
+            print("CRICKET MATCH ANALYSIS REPORT")
+            print("="*80)
+            print(analysis_result['human_report'])
+            
+            print(f"\nComprehensive analysis saved to: {output}_comprehensive.json")
+            
+        elif analysis_type == "summary":
+            print("\nGenerating match summary...")
+            
+            # Get basic summary
+            match_info = extractor.extract_match_info()
+            team_info = extractor.extract_team_info()
+            innings_data = extractor.extract_innings_data()
+            
+            summary_data = {
+                "match_info": match_info,
+                "team_info": team_info,
+                "innings_summary": innings_data,
+                "human_readable": extractor.get_human_readable_summary()
+            }
+            
+            write_to_file(summary_data, "json", f"{output}_summary")
+            
+            print(extractor.get_human_readable_summary())
+            print(f"\nMatch summary saved to: {output}_summary.json")
+            
+        elif analysis_type == "live":
+            print("\nExtracting live match state...")
+            
+            # Get current match state
+            live_batting = extractor.extract_live_batting()
+            live_bowling = extractor.extract_live_bowling()
+            partnerships = extractor.extract_partnerships()
+            
+            live_data = {
+                "current_batting": live_batting,
+                "current_bowling": live_bowling,
+                "partnerships": partnerships,
+                "timestamp": match_data.get('live', {}).get('timestamp', '')
+            }
+            
+            write_to_file(live_data, "json", f"{output}_live")
+            
+            print("Current Batting:")
+            for batter in live_batting:
+                if batter['position'] in ['striker', 'non-striker']:
+                    print(f"  {batter['position']}: {batter['runs']}* ({batter['balls_faced']}b) SR: {batter['strike_rate']}")
+            
+            print("\nCurrent Bowling:")
+            for bowler in live_bowling:
+                print(f"  {bowler['overs']}-{bowler['maidens']}-{bowler['runs_conceded']}-{bowler['wickets']} Econ: {bowler['economy_rate']}")
+            
+            print(f"\nLive match data saved to: {output}_live.json")
+            
+        elif analysis_type == "structured":
+            print("\nExtracting structured data...")
+            
+            # Get structured data using analyzer
+            match_summary = analyzer.get_match_summary()
+            innings_summary = analyzer.get_innings_summary()
+            batting_stats = analyzer.get_current_batting_stats()
+            bowling_stats = analyzer.get_current_bowling_stats()
+            ball_by_ball = analyzer.get_ball_by_ball_data()
+            
+            structured_data = {
+                "match_summary": match_summary,
+                "innings_summary": innings_summary,
+                "batting_stats": batting_stats.to_dict('records') if not batting_stats.empty else [],
+                "bowling_stats": bowling_stats.to_dict('records') if not bowling_stats.empty else [],
+                "ball_by_ball": ball_by_ball.to_dict('records') if not ball_by_ball.empty else []
+            }
+            
+            write_to_file(structured_data, "json", f"{output}_structured")
+            
+            print("Match Summary:")
+            print(json.dumps(match_summary, indent=2))
+            
+            print(f"\nStructured data saved to: {output}_structured.json")
+            
+        elif analysis_type == "timeline":
+            print("\nGenerating event-by-event timeline...")
+            
+            # Get timeline data
+            timeline_events = extractor.extract_match_timeline()
+            timeline_report = extractor.generate_timeline_report()
+            
+            timeline_data = {
+                "timeline_events": timeline_events,
+                "timeline_report": timeline_report,
+                "total_events": len(timeline_events)
+            }
+            
+            write_to_file(timeline_data, "json", output)
+            
+            # Also save the human-readable report as a text file
+            with open(f"{output}.txt", 'w', encoding='utf-8') as f:
+                f.write(timeline_report)
+            
+            print(timeline_report)
+            print(f"\nTimeline data saved to: {output}.json")
+            print(f"Timeline report saved to: {output}.txt")
+            
+        else:
+            print(f"\033[91mError: Invalid analysis_type '{analysis_type}'. Valid options: comprehensive, summary, live, structured, timeline\033[0m")
+            return
+
+        
+        print(f"\nMatch data processing completed successfully!")
+        
+    except Exception as e:
+        print(f"\033[91mError processing match data: {str(e)}\033[0m")
+        print("Please check the match URL and try again.")
+
+def _is_match_data(data):
+    """
+    Validate that the provided data is cricket match data, not player data
+    """
+    if not isinstance(data, dict):
+        return False
+    
+    # Check for key match data fields
+    match_indicators = ['match', 'live', 'innings', 'team', 'comms']
+    has_match_fields = any(key in data for key in match_indicators)
+    
+    # Check for player data indicators (to exclude)
+    player_indicators = ['player_name', 'player_id', 'Span', 'Mat', 'Runs', 'HS', 'Ave', 'SR']
+    has_player_fields = any(key in data for key in player_indicators)
+    
+    # If it has match fields and doesn't look like player data, it's likely match data
+    return has_match_fields and not has_player_fields
